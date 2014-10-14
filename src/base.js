@@ -247,7 +247,8 @@
       accessors: d4.extend({
         key: dimension,
         min: undefined,
-        max: undefined
+        max: undefined,
+        wrap: true
       }, axis)
     };
     createAxisScale(dimension, opts, opts.axes[dimension]);
