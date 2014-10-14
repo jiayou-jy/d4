@@ -1,4 +1,4 @@
-/*! d4 - v0.8.10
+/*! d4 - v0.8.11
  *  License: MIT Expat
  *  Date: 2014-10-14
  *  Copyright: Mark Daggett, D4 Team
@@ -4326,7 +4326,9 @@
 
         subtitle: undefined,
 
-        title: undefined
+        title: undefined,
+
+        wrap: true,
       },
       proxies: [{
         target: axis

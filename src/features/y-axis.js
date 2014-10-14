@@ -94,7 +94,7 @@
 
         title: undefined,
 
-        wrap: true
+        wrap: true,
       },
       proxies: [{
         target: axis
