@@ -1,6 +1,6 @@
 /*! d4 - v0.8.10
  *  License: MIT Expat
- *  Date: 2014-10-09
+ *  Date: 2014-10-14
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -298,7 +298,8 @@
       mixins: [],
       outerHeight: 460,
       outerWidth: 460,
-      width: 400
+      width: 400,
+      chartAreaOnTop: true
     }, config);
     opts = d4.merge(opts, chartAccessors);
 
@@ -338,7 +339,6 @@
 
   var linkFeatures = function(opts, data) {
     var parsedData, selection;
-
     opts.mixins.forEach(function(name) {
       parsedData = prepareDataForFeature(opts, name, data);
       selection = opts.features[name].render.bind(opts)(opts.features[name], parsedData, opts.chartArea);
@@ -412,6 +412,9 @@
         data = prepareData(opts, data);
         scaffoldChart.bind(opts, this)();
         build(opts, data);
+        if (!opts.chartAreaOnTop) {
+          opts.svg.selectAll(".margins")[0][0].appendChild(opts.chartArea[0][0])
+        }
       });
     };
   };
@@ -677,6 +680,25 @@
       chart.width(chart.outerWidth() - opts.margin.left - opts.margin.right);
       return chart;
     };
+
+    /**
+     * Defines whether the chartArea should be on top (true) of the axis or below it (false)
+     *
+     *##### Example
+     *
+     *      // set the chartArea to be below the axes:
+     *      chart.chartAreaOnTop(false);
+     *
+     * @param {*} b - an boolean
+     * @return {Function} chart instance
+     */
+    chart.chartAreaOnTop = function(b) {
+      if (!arguments.length) {
+        return opts.chartAreaOnTop;
+      }
+      opts.chartAreaOnTop = b
+      return chart;
+    }
 
     /**
      * Specifies a feature to be mixed into a given chart.
