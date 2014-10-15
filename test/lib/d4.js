@@ -1,6 +1,6 @@
-/*! d4 - v0.8.11
+/*! d4 - v0.8.12
  *  License: MIT Expat
- *  Date: 2014-10-14
+ *  Date: 2014-10-15
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -3098,6 +3098,10 @@
         }
       },
       render: function(scope, data, selection) {
+        if (data.length > 0) {
+          this.groupsOf = this.groupsOf || data[0].values.length;
+        }
+
         selection.append('g').attr('class', name);
         var group = this.svg.select('.' + name).selectAll('g')
           .data(data, d4.functor(scope.accessors.key).bind(this));
