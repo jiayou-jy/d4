@@ -85,6 +85,10 @@
         }
       },
       render: function(scope, data, selection) {
+        if (data.length > 0) {
+          this.groupsOf = this.groupsOf || data[0].values.length;
+        }
+
         selection.append('g').attr('class', name);
         var group = this.svg.select('.' + name).selectAll('g')
           .data(data, d4.functor(scope.accessors.key).bind(this));
