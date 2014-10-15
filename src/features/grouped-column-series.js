@@ -90,7 +90,7 @@
         }
 
         selection.append('g').attr('class', name);
-        var group = this.svg.select('.' + name).selectAll('g')
+        var group = this.container.select('.' + name).selectAll('g')
           .data(data, d4.functor(scope.accessors.key).bind(this));
         group.enter().append('g');
         group.exit().remove();
