@@ -423,7 +423,7 @@
         scaffoldChart.bind(opts, this)();
         build(opts, data);
         if (!opts.chartAreaOnTop) {
-          opts.svg.selectAll(".margins")[0][0].appendChild(opts.chartArea[0][0])
+          opts.container.selectAll(".margins")[0][0].appendChild(opts.chartArea[0][0])
         }
       });
     };
