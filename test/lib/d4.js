@@ -1,4 +1,4 @@
-/*! d4 - v0.8.12
+/*! d4 - v0.8.15
  *  License: MIT Expat
  *  Date: 2014-10-15
  *  Copyright: Mark Daggett, D4 Team
@@ -428,7 +428,7 @@
         scaffoldChart.bind(opts, this)();
         build(opts, data);
         if (!opts.chartAreaOnTop) {
-          opts.svg.selectAll(".margins")[0][0].appendChild(opts.chartArea[0][0])
+          opts.container.selectAll(".margins")[0][0].appendChild(opts.chartArea[0][0])
         }
       });
     };
