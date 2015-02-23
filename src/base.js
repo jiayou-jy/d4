@@ -247,7 +247,8 @@
       accessors: d4.extend({
         key: dimension,
         min: undefined,
-        max: undefined
+        max: undefined,
+        wrap: true
       }, axis)
     };
     createAxisScale(dimension, opts, opts.axes[dimension]);
@@ -293,7 +294,8 @@
       mixins: [],
       outerHeight: 460,
       outerWidth: 460,
-      width: 400
+      width: 400,
+      chartAreaOnTop: true
     }, config);
     opts = d4.merge(opts, chartAccessors);
 
@@ -330,7 +332,6 @@
 
   var linkFeatures = function(opts, data) {
     var parsedData, selection;
-
     opts.mixins.forEach(function(name) {
       parsedData = prepareDataForFeature(opts, name, data);
       selection = opts.features[name].render.bind(opts)(opts.features[name], parsedData, opts.chartArea);
@@ -418,6 +419,9 @@
         data = prepareData(opts, data);
         scaffoldChart.bind(opts, this)();
         build(opts, data);
+        if (!opts.chartAreaOnTop) {
+          opts.container.selectAll(".margins")[0][0].appendChild(opts.chartArea[0][0])
+        }
       });
     };
   };
@@ -684,6 +688,25 @@
       chart.width(chart.outerWidth() - opts.margin.left - opts.margin.right);
       return chart;
     };
+
+    /**
+     * Defines whether the chartArea should be on top (true) of the axis or below it (false)
+     *
+     *##### Example
+     *
+     *      // set the chartArea to be below the axes:
+     *      chart.chartAreaOnTop(false);
+     *
+     * @param {*} b - an boolean
+     * @return {Function} chart instance
+     */
+    chart.chartAreaOnTop = function(b) {
+      if (!arguments.length) {
+        return opts.chartAreaOnTop;
+      }
+      opts.chartAreaOnTop = b
+      return chart;
+    }
 
     /**
      * Specifies a feature to be mixed into a given chart.
