@@ -1,6 +1,6 @@
-/*! d4 - v0.8.15
+/*! d4 - v0.8.16
  *  License: MIT Expat
- *  Date: 2014-10-15
+ *  Date: 2015-02-23
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -328,12 +328,9 @@
   };
 
   var prepareDataForFeature = function(opts, name, data) {
-    var feature = opts.features[name];
-    if (d4.isFunction(feature.prepare)) {
-      data = feature.prepare.bind(opts)(data);
-      if (d4.isUndefined(data)) {
-        err('"feature.prepare()" must return a data array. However, the prepare function for the "{0}" feature did not', name);
-      }
+    var result = opts.features[name].accessors.beforeRender.bind(opts)(data);
+    if (d4.isDefined(result)) {
+      data = result;
     }
     return data;
   };
@@ -358,16 +355,16 @@
   };
 
   var scaffoldChart = function(selection) {
-    if (selection.tagName == "svg") {
+    if (selection.tagName === 'svg') {
       this.container = d3.select(selection)
-        .classed("d4", true)
-        .classed("chart", true)
+        .classed('d4', true)
+        .classed('chart', true)
         .attr('width', Math.max(0, this.width + this.margin.left + this.margin.right))
         .attr('height', Math.max(0, this.height + this.margin.top + this.margin.bottom));
-    } else if (selection.tagName == "g") {
+    } else if (selection.tagName === 'g') {
       this.container = d3.select(selection)
-        .classed("d4", true)
-        .classed("chart", true)
+        .classed('d4', true)
+        .classed('chart', true);
 
     } else {
       this.container = d4.appendOnce(d3.select(selection), 'svg.d4.chart')
@@ -486,6 +483,7 @@
       var baseFeature = {
         accessors: {
           afterRender: function() {},
+          beforeRender: function() {}
         },
         proxies: []
       };
@@ -2099,13 +2097,13 @@
 
       return {
         accessors: {
+          beforeRender: function(data) {
+            return calculateStackTotals.bind(this)(data);
+          },
           y: function(d) {
             var padding = 5;
             return this.y(d.size) - padding;
           }
-        },
-        prepare: function(data) {
-          return calculateStackTotals.bind(this)(data);
         }
       };
     };
@@ -2243,14 +2241,15 @@
 
       return {
         accessors: {
+          beforeRender: function(data) {
+            return calculateStackTotals.bind(this)(data);
+          },
+
           x: function(d) {
             var padding = 5;
             return this.x(d.size) + padding;
           }
         },
-        prepare: function(data) {
-          return calculateStackTotals.bind(this)(data);
-        }
       };
     };
 
@@ -2406,7 +2405,13 @@
           return d.y + d.y0;
         });
       })));
-      ext[0] = Math.min(0, ext[0]);
+
+      ext[0] = d4.isDefined(chart[dimension].$min) ? chart[dimension].$min : Math.min(0, ext[0]);
+
+      if (d4.isDefined(chart[dimension].$max)) {
+        ext[1] = chart[dimension].$max;
+      }
+
       chart[dimension].domain(ext);
       chart[dimension].range(rangeBoundsFor.bind(this)(chart, dimension))
         .clamp(true)
@@ -2697,13 +2702,16 @@
           .innerRadius(r)
           .outerRadius(r - aw);
 
-        var group = selection.selectAll('g.' + name).data(data);
-        group.enter()
+        var group = d4.appendOnce(selection, 'g.' + name);
+        var arcGroups = group.selectAll('g')
+          .data(data);
+
+        arcGroups.enter()
           .append('g')
           .attr('class', name)
           .attr('transform', 'translate(' + x + ',' + y + ')');
 
-        var arcs = group.selectAll('path')
+        var arcs = arcGroups.selectAll('path')
           .data(function(d) {
             return d.values;
           }, d4.functor(scope.accessors.key).bind(this));
@@ -2725,7 +2733,7 @@
 
         //remove old elements as needed
         arcs.exit().remove();
-        group.exit().remove();
+        arcGroups.exit().remove();
         return arc;
       }
     };
@@ -3116,20 +3124,24 @@
           this.groupsOf = this.groupsOf || data[0].values.length;
         }
 
-        selection.append('g').attr('class', name);
-        var group = this.container.select('.' + name).selectAll('g')
+        var group = d4.appendOnce(selection, 'g.' + name);
+
+        var columnGroups = group.selectAll('g')
           .data(data, d4.functor(scope.accessors.key).bind(this));
-        group.enter().append('g');
-        group.exit().remove();
-        group.attr('class', function(d, i) {
+
+        columnGroups.enter().append('g');
+        columnGroups.exit().remove();
+        columnGroups.attr('class', function(d, i) {
           return 'series' + i + ' ' + this.x.$key;
         }.bind(this));
 
-        var rect = group.selectAll('rect')
+        var rect = columnGroups.selectAll('rect')
           .data(function(d) {
             return d.values;
-          }.bind(this));
-        rect.enter().append('rect')
+          }.bind(this))
+          .enter().append('rect');
+
+        columnGroups.selectAll('rect')
           .attr('class', d4.functor(scope.accessors.classes).bind(this))
           .attr('x', d4.functor(scope.accessors.x).bind(this))
           .attr('y', d4.functor(scope.accessors.y).bind(this))
@@ -3335,24 +3347,27 @@
         target: line
       }],
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
+        var group = d4.appendOnce(selection, 'g.' + name);
         line
           .x(d4.functor(scope.accessors.x).bind(this))
           .y(d4.functor(scope.accessors.y).bind(this));
 
-        var group = selection.select('.' + name).selectAll('g')
+        var lineGroups = group.selectAll('g')
           .data(data, d4.functor(scope.accessors.key).bind(this));
-        group.exit().remove();
-        group.enter().append('g')
+
+        lineGroups.exit().remove();
+        lineGroups.enter().append('g')
           .attr('data-key', function(d) {
             return d.key;
           })
-          .attr('class', d4.functor(scope.accessors.classes).bind(this))
-          .append('path')
-          .attr('d', function(d) {
-            return line(d.values);
-          });
-        return group;
+          .attr('class', d4.functor(scope.accessors.classes).bind(this));
+
+        d4.appendOnce(lineGroups, 'path');
+
+        lineGroups.selectAll('path').attr('d', function(d) {
+          return line(d.values);
+        });
+        return lineGroups;
       }
     };
   });
@@ -3708,19 +3723,19 @@
       },
 
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
+        var group = d4.appendOnce(selection, 'g.' + name);
 
         // create data join with the series data
-        var group = this.container.select('.' + name).selectAll('g')
+        var shapeGroups = group.selectAll('g')
           .data(data, d4.functor(scope.accessors.key).bind(this));
 
-        group.enter().append('g')
+        shapeGroups.enter().append('g')
           .attr('class', function(d, i) {
             return 'series' + i + ' ' + this.y.$key;
           }.bind(this));
-        group.exit().remove();
+        shapeGroups.exit().remove();
 
-        var shape = group.selectAll(shapeType)
+        var shape = shapeGroups.selectAll(shapeType)
           .data(function(d) {
             return d.values;
           });
@@ -4031,6 +4046,13 @@
   d4.feature('waterfallConnectors', function(name) {
     return {
       accessors: {
+        beforeRender: function(data) {
+          var d = data.map(function(o) {
+            return o.values[0];
+          });
+          return d4.flatten(d);
+        },
+
         classes: function(d, i) {
           return 'series' + i;
         },
@@ -4063,12 +4085,6 @@
             return this.y(d[this.y.$key]);
           }
         }
-      },
-      prepare: function(data) {
-        var d = data.map(function(o) {
-          return o.values[0];
-        });
-        return d4.flatten(d);
       },
 
       render: function(scope, data, selection) {
@@ -4225,9 +4241,7 @@
         var title = textRect(d4.functor(scope.accessors.title).bind(this)(), 'title');
         var subtitle = textRect(d4.functor(scope.accessors.subtitle).bind(this)(), 'subtitle');
         var aligned = d4.functor(scope.accessors.align).bind(this)();
-        var group = this.container.select('g.margins')
-          .append('g')
-          .attr('class', 'x axis ' + name)
+        var group = d4.appendOnce(this.container.select('g.margins'), 'g.x.axis.' + name)
           .attr('data-scale', this.x.$scale)
           .call(axis);
         alignAxis.bind(this)(aligned, group);
@@ -4346,7 +4360,7 @@
 
         title: undefined,
 
-        wrap: true,
+        wrap: true
       },
       proxies: [{
         target: axis
@@ -4358,9 +4372,7 @@
         var aligned = d4.functor(scope.accessors.align).bind(this)();
         var wrap = d4.functor(scope.accessors.wrap).bind(this)();
 
-        var group = this.container.select('g.margins')
-          .append('g')
-          .attr('class', 'y axis ' + name)
+        var group = d4.appendOnce(this.container.select('g.margins'), 'g.y.axis.' + name)
           .attr('data-scale', this.y.$scale)
           .call(axis);
 
@@ -4368,7 +4380,6 @@
           group.selectAll('.tick text')
             .call(d4.helpers.wrapText, this.margin[aligned]);
         }
-
         alignAxis.bind(this)(aligned, group);
 
         if (d4.functor(scope.accessors.stagger).bind(this)()) {

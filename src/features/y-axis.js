@@ -94,7 +94,7 @@
 
         title: undefined,
 
-        wrap: true,
+        wrap: true
       },
       proxies: [{
         target: axis
@@ -106,9 +106,7 @@
         var aligned = d4.functor(scope.accessors.align).bind(this)();
         var wrap = d4.functor(scope.accessors.wrap).bind(this)();
 
-        var group = this.container.select('g.margins')
-          .append('g')
-          .attr('class', 'y axis ' + name)
+        var group = d4.appendOnce(this.container.select('g.margins'), 'g.y.axis.' + name)
           .attr('data-scale', this.y.$scale)
           .call(axis);
 
@@ -116,7 +114,6 @@
           group.selectAll('.tick text')
             .call(d4.helpers.wrapText, this.margin[aligned]);
         }
-
         alignAxis.bind(this)(aligned, group);
 
         if (d4.functor(scope.accessors.stagger).bind(this)()) {
