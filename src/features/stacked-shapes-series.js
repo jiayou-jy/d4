@@ -75,6 +75,7 @@
           .attr('class', d4.functor(scope.accessors.classes).bind(this));
         renderShapeAttributes.bind(this)(scope, shape);
 
+        shapeGroups.exit().remove();
         shape.exit().remove();
         return shape;
       }
