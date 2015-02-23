@@ -321,12 +321,9 @@
   };
 
   var prepareDataForFeature = function(opts, name, data) {
-    var feature = opts.features[name];
-    if (d4.isFunction(feature.prepare)) {
-      data = feature.prepare.bind(opts)(data);
-      if (d4.isUndefined(data)) {
-        err('"feature.prepare()" must return a data array. However, the prepare function for the "{0}" feature did not', name);
-      }
+    var result = opts.features[name].accessors.beforeRender.bind(opts)(data);
+    if (d4.isDefined(result)) {
+      data = result;
     }
     return data;
   };
@@ -352,15 +349,29 @@
   };
 
   var scaffoldChart = function(selection) {
-    this.svg = d4.appendOnce(d3.select(selection), 'svg.d4.chart')
-      .attr('width', Math.max(0, this.width + this.margin.left + this.margin.right))
-      .attr('height', Math.max(0, this.height + this.margin.top + this.margin.bottom));
+    if (selection.tagName === 'svg') {
+      this.container = d3.select(selection)
+        .classed('d4', true)
+        .classed('chart', true)
+        .attr('width', Math.max(0, this.width + this.margin.left + this.margin.right))
+        .attr('height', Math.max(0, this.height + this.margin.top + this.margin.bottom));
+    } else if (selection.tagName === 'g') {
+      this.container = d3.select(selection)
+        .classed('d4', true)
+        .classed('chart', true);
 
-    d4.appendOnce(this.svg, 'defs');
-    d4.appendOnce(this.svg, 'g.margins')
+    } else {
+      this.container = d4.appendOnce(d3.select(selection), 'svg.d4.chart')
+        .attr('width', Math.max(0, this.width + this.margin.left + this.margin.right))
+        .attr('height', Math.max(0, this.height + this.margin.top + this.margin.bottom));
+    }
+
+
+    d4.appendOnce(this.container, 'defs');
+    d4.appendOnce(this.container, 'g.margins')
       .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
 
-    this.chartArea = d4.appendOnce(this.svg.select('g.margins'), 'g.chartArea');
+    this.chartArea = d4.appendOnce(this.container.select('g.margins'), 'g.chartArea');
   };
 
   // Normally d4 series elements inside the data array to be in a specific
@@ -463,6 +474,7 @@
       var baseFeature = {
         accessors: {
           afterRender: function() {},
+          beforeRender: function() {}
         },
         proxies: []
       };

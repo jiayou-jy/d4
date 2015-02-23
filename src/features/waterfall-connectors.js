@@ -17,6 +17,13 @@
   d4.feature('waterfallConnectors', function(name) {
     return {
       accessors: {
+        beforeRender: function(data) {
+          var d = data.map(function(o) {
+            return o.values[0];
+          });
+          return d4.flatten(d);
+        },
+
         classes: function(d, i) {
           return 'series' + i;
         },
@@ -50,16 +57,10 @@
           }
         }
       },
-      prepare: function(data) {
-        var d = data.map(function(o) {
-          return o.values[0];
-        });
-        return d4.flatten(d);
-      },
 
       render: function(scope, data, selection) {
         selection.append('g').attr('class', name);
-        var lines = this.svg.select('.' + name).selectAll('.' + name).data(data);
+        var lines = this.container.select('.' + name).selectAll('.' + name).data(data);
         lines.enter().append('line');
         lines.exit().remove();
         lines
