@@ -106,7 +106,7 @@
 
         rect.enter().append('rect');
 
-        columnGroups.selectAll('rect')
+        rect
           .attr('class', d4.functor(scope.accessors.classes).bind(this))
           .attr('x', d4.functor(scope.accessors.x).bind(this))
           .attr('y', d4.functor(scope.accessors.y).bind(this))
