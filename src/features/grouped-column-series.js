@@ -95,7 +95,6 @@
           .data(data, d4.functor(scope.accessors.key).bind(this));
 
         columnGroups.enter().append('g');
-        columnGroups.exit().remove();
         columnGroups.attr('class', function(d, i) {
           return 'series' + i + ' ' + this.x.$key;
         }.bind(this));
@@ -103,8 +102,9 @@
         var rect = columnGroups.selectAll('rect')
           .data(function(d) {
             return d.values;
-          }.bind(this))
-          .enter().append('rect');
+          }.bind(this));
+
+        rect.enter().append('rect');
 
         columnGroups.selectAll('rect')
           .attr('class', d4.functor(scope.accessors.classes).bind(this))
@@ -114,6 +114,10 @@
           .attr('rx', d4.functor(scope.accessors.rx).bind(this))
           .attr('width', d4.functor(scope.accessors.width).bind(this))
           .attr('height', d4.functor(scope.accessors.height).bind(this));
+
+        rect.exit().remove();
+        columnGroups.exit().remove();
+
         return rect;
       }
     };

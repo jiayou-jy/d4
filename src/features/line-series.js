@@ -42,11 +42,11 @@
           })
           .attr('class', d4.functor(scope.accessors.classes).bind(this));
 
-        d4.appendOnce(lineGroups, 'path');
+        lineGroups.append('path')
+          .attr('d', function(d) {
+            return line(d.values);
+          });
 
-        lineGroups.selectAll('path').attr('d', function(d) {
-          return line(d.values);
-        });
         return lineGroups;
       }
     };
