@@ -1,6 +1,6 @@
 /*! d4 - v0.8.17
  *  License: MIT Expat
- *  Date: 2015-02-23
+ *  Date: 2015-02-25
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -5033,7 +5033,7 @@
     if (!axis.clamp.$dirty) {
       axis.clamp(true);
     }
-    return chart[dimension].nice();
+    return chart[dimension];
   };
 
   /**

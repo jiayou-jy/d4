@@ -52,7 +52,7 @@
     if (!axis.clamp.$dirty) {
       axis.clamp(true);
     }
-    return chart[dimension].nice();
+    return chart[dimension];
   };
 
   /**
