@@ -1,6 +1,6 @@
 /*! d4 - v0.8.17
  *  License: MIT Expat
- *  Date: 2015-02-25
+ *  Date: 2015-02-27
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -296,6 +296,12 @@
         bottom: 40,
         left: 40
       },
+      padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      },
       mixins: [],
       outerHeight: 460,
       outerWidth: 460,
@@ -579,6 +585,7 @@
   var createChart = function(opts) {
     var chart = applyScaffold(opts);
     createAccessorsFromArray(chart, opts.margin, d3.keys(opts.margin), 'margin');
+    createAccessorsFromArray(chart, opts.padding, d3.keys(opts.padding), 'padding');
     createAccessorsFromArray(chart, opts, opts.accessors);
     createAccessorsFromAxes(chart, opts);
 
@@ -691,6 +698,40 @@
       opts.margin = d4.merge(opts.margin, d4.functor(funct)());
       chart.height(chart.outerHeight() - opts.margin.top - opts.margin.bottom);
       chart.width(chart.outerWidth() - opts.margin.left - opts.margin.right);
+      return chart;
+    };
+
+    /**
+     * To adjust the chart's padding supply either an object or a function that returns
+     * an object to this method.
+     *
+     *##### Examples
+     *
+     *      // set the padding this using an object:
+     *      chart.padding({ top: 10, right: 10, bottom: 10, left: 10 });
+     *
+     *      // set using a function:
+     *      chart.padding(function(){
+     *          return { top: 10, right: 10, bottom: 10, left: 10 };
+     *      });
+     *
+     *      // since JavaScript is a pass by reference language you can also
+     *      // set portions of the padding this way:
+     *      chart.padding().left = 20;
+     *
+     *      // there are also accessor method for each property of the padding
+     *      // object:
+     *      chart.paddingLeft(20);
+     *      chart.paddingLeft() // => 20;
+     *
+     * @param {*} funct - an object or a function that returns an object.
+     * @return {Function} chart instance
+     */
+    chart.padding = function(funct) {
+      if (!arguments.length) {
+        return opts.padding;
+      }
+      opts.padding = d4.merge(opts.padding, d4.functor(funct)());
       return chart;
     };
 
@@ -4226,10 +4267,10 @@
     var alignAxis = function(align, axis) {
       switch (true) {
         case align.toLowerCase() === 'top':
-          axis.attr('transform', 'translate(0,0)');
+          axis.attr('transform', 'translate(0,' + this.padding.top + ')');
           break;
         case align.toLowerCase() === 'bottom':
-          axis.attr('transform', 'translate(0,' + this.height + ')');
+          axis.attr('transform', 'translate(0,' + (this.height - this.padding.bottom) + ')');
           break;
       }
     };
@@ -4354,10 +4395,10 @@
     var alignAxis = function(align, axis) {
       switch (true) {
         case align.toLowerCase() === 'left':
-          axis.attr('transform', 'translate(0,0)');
+          axis.attr('transform', 'translate(' + this.padding.left + ',0)');
           break;
         case align.toLowerCase() === 'right':
-          axis.attr('transform', 'translate(' + this.width + ', 0)');
+          axis.attr('transform', 'translate(' + this.width - this.padding.right + ', 0)');
           break;
       }
     };
@@ -4992,13 +5033,13 @@
   };
 
   var rangeFor = function(chart, dimension) {
-
-    // This may not be a very robust approach.
+    var padding = chart.padding
+      // This may not be a very robust approach.
     switch (dimension) {
       case 'x':
-        return [0, chart.width];
+        return [padding.left, chart.width - padding.right];
       case 'y':
-        return [chart.height, 0];
+        return [chart.height - padding.bottom, padding.top];
       default:
         return [];
     }

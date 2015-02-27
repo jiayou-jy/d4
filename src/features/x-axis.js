@@ -76,10 +76,10 @@
     var alignAxis = function(align, axis) {
       switch (true) {
         case align.toLowerCase() === 'top':
-          axis.attr('transform', 'translate(0,0)');
+          axis.attr('transform', 'translate(0,' + this.padding.top + ')');
           break;
         case align.toLowerCase() === 'bottom':
-          axis.attr('transform', 'translate(0,' + this.height + ')');
+          axis.attr('transform', 'translate(0,' + (this.height - this.padding.bottom) + ')');
           break;
       }
     };
