@@ -1,6 +1,6 @@
 /*! d4 - v0.8.17
  *  License: MIT Expat
- *  Date: 2015-03-01
+ *  Date: 2015-03-02
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -4450,7 +4450,7 @@
           axis.attr('transform', 'translate(' + this.padding.left + ',0)');
           break;
         case align.toLowerCase() === 'right':
-          axis.attr('transform', 'translate(' + this.width - this.padding.right + ', 0)');
+          axis.attr('transform', 'translate(' + (this.width - this.padding.right) + ', 0)');
           break;
       }
     };
