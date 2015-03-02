@@ -4447,10 +4447,10 @@
     var alignAxis = function(align, axis) {
       switch (true) {
         case align.toLowerCase() === 'left':
-          axis.attr('transform', 'translate(' + this.padding.left + ',0)');
+          axis.attr('transform', 'translate(' + this.defaultPadding.left + ',0)');
           break;
         case align.toLowerCase() === 'right':
-          axis.attr('transform', 'translate(' + (this.width - this.padding.right) + ', 0)');
+          axis.attr('transform', 'translate(' + (this.width - this.defaultPadding.right) + ', 0)');
           break;
       }
     };
