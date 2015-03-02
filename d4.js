@@ -1,6 +1,6 @@
 /*! d4 - v0.8.17
  *  License: MIT Expat
- *  Date: 2015-02-27
+ *  Date: 2015-03-01
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -302,6 +302,18 @@
         bottom: 0,
         left: 0
       },
+      defaultPadding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      },
+      extraPadding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      },
       mixins: [],
       outerHeight: 460,
       outerWidth: 460,
@@ -586,6 +598,8 @@
     var chart = applyScaffold(opts);
     createAccessorsFromArray(chart, opts.margin, d3.keys(opts.margin), 'margin');
     createAccessorsFromArray(chart, opts.padding, d3.keys(opts.padding), 'padding');
+    createAccessorsFromArray(chart, opts.defaultPadding, d3.keys(opts.defaultPadding), 'defaultPadding');
+    createAccessorsFromArray(chart, opts.extraPadding, d3.keys(opts.extraPadding), 'extraPadding');
     createAccessorsFromArray(chart, opts, opts.accessors);
     createAccessorsFromAxes(chart, opts);
 
@@ -729,9 +743,32 @@
      */
     chart.padding = function(funct) {
       if (!arguments.length) {
-        return opts.padding;
+        return d4.mergeDimensions(opts.padding, opts.extraPadding);
       }
-      opts.padding = d4.merge(opts.padding, d4.functor(funct)());
+      opts.padding = //d4.mergeDimensions(
+        d4.merge(opts.padding, d4.functor(funct)()) //,
+        //  opts.extraPadding
+        //);
+      return chart;
+    };
+
+    chart.defaultPadding = function(funct) {
+      if (!arguments.length) {
+        return opts.defaultPadding;
+      }
+      opts.defaultPadding = d4.merge(opts.defaultPadding, d4.functor(funct)());
+      opts.padding = d4.mergeDimensions(opts.padding, opts.extraPadding);
+      return chart;
+    };
+
+
+
+    chart.extraPadding = function(funct) {
+      if (!arguments.length) {
+        return opts.extraPadding;
+      }
+      opts.extraPadding = d4.merge(opts.extraPadding, d4.functor(funct)());
+      opts.padding = d4.mergeDimensions(opts.padding, opts.extraPadding);
       return chart;
     };
 
@@ -1226,6 +1263,21 @@
   d4.parser = function(name, funct) {
     d4.parsers[name] = funct;
     return d4.parsers[name];
+  };
+
+  /**
+   * This function takes two border objects and sums thier measurements together
+   * @param {Object} a - A margin or padding object
+   * @param {Object} b - A margin or padding object
+   * @return {Object} A newly merged object
+   */
+  d4.mergeDimensions = function(a, b) {
+    return {
+      top: a.top + b.top,
+      right: a.right + b.right,
+      bottom: a.bottom + b.bottom,
+      left: a.left + b.left
+    }
   };
 }).call(this);
 
