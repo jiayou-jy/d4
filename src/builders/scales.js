@@ -14,12 +14,12 @@
     var padding = chart.padding
       // This may not be a very robust approach.
     switch (dimension) {
-        case 'x':
-          return [padding.left, chart.width - padding.right];
-        case 'y':
-          return [chart.height - padding.bottom, padding.top];
-        default:
-          return [];
+      case 'x':
+        return [padding.left, chart.width - padding.right];
+      case 'y':
+        return [chart.height - padding.bottom, padding.top];
+      default:
+        return [];
     }
   };
 
