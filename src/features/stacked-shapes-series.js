@@ -77,6 +77,7 @@
 
         shapeGroups.exit().remove();
         shape.exit().remove();
+        shapeGroups.exit().remove();
         return shape;
       }
     };
