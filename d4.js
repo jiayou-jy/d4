@@ -201,7 +201,7 @@
    *       chart.builder(function() {
    *           return {
    *               link: function(chart, data) {
-   *                   console.log(chart.x.domain.$dirty) // false;
+   *                   // false;
    *               }
    *           }
    *       });
@@ -670,7 +670,7 @@
      *      .mixout('yAxis');
      *
      *      // Now test that the feature has been removed.
-     *      console.log(chart.features());
+     *      
      *      // => ["bars", "barLabels", "xAxis"]
      *
      * @return {Array} An array of features.
@@ -825,7 +825,7 @@
      *      .mixout('yAxis');
      *
      *      // Now test that the feature has been removed.
-     *      console.log(chart.features());
+     *      
      *      => ["bars", "barLabels", "xAxis"]
      *
      * @param {String} name - accessor name for chart feature.
