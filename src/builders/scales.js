@@ -12,7 +12,7 @@
 
   var rangeFor = function(chart, dimension) {
     var padding = chart.padding;
-      // This may not be a very robust approach.
+    // This may not be a very robust approach.
     switch (dimension) {
       case 'x':
         return [padding.left, chart.width - padding.right];

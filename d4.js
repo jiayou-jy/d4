@@ -1,6 +1,6 @@
 /*! d4 - v0.8.17
  *  License: MIT Expat
- *  Date: 2015-03-03
+ *  Date: 2015-03-05
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -282,6 +282,9 @@
       link: function(chart, data) {
         d4.builders[chart.x.$scale + 'ScaleForNestedData'](chart, data, 'x');
         d4.builders[chart.y.$scale + 'ScaleForNestedData'](chart, data, 'y');
+        if (chart.groups) {
+          d4.builders[chart.groups.$scale + 'ScaleForNestedData'](chart, data, 'groups');
+        }
       }
     });
     var chartAccessors = d4.merge({}, config.accessors);
@@ -1641,11 +1644,11 @@
     var columnLabelOverrides = function() {
       return {
         accessors: {
-          x: function(d, i) {
-            var width = this.x.rangeBand() / this.groupsOf;
-            var xPos = this.x(d[this.x.$key]) + width * i;
-            var gutter = width * 0.1;
-            return xPos + width / 2 - gutter;
+          x: function(d) {
+            var groupX = this.x(d[this.x.$key]);
+            var rectX = this.groups(d[this.groups.$key]);
+            var rectWidthOffset = this.groups.rangeBand() / 2;
+            return groupX + rectX + rectWidthOffset;
           }
         }
       };
@@ -1655,7 +1658,14 @@
         config: {
           accessors: {
             groupsOf: 1
-          }
+          },
+          axes: {
+            groups: {
+              scale: 'ordinal',
+              dimension: 'x',
+              roundBands: 0.1
+            }
+          },
         }
       })
       .mixin([{
@@ -1734,11 +1744,11 @@
     var rowLabelOverrides = function() {
       return {
         accessors: {
-          y: function(d, i) {
-            var height = this.y.rangeBand() / this.groupsOf;
-            var yPos = this.y(d[this.y.$key]) + height * i;
-            var gutter = height * 0.1;
-            return yPos + height / 4 + gutter;
+          y: function(d) {
+            var groupY = this.y(d[this.y.$key]);
+            var rectY = this.groups(d[this.groups.$key]);
+            var rectHeightOffset = this.groups.rangeBand() / 3;
+            return groupY + rectY + rectHeightOffset;
           }
         }
       };
@@ -1761,6 +1771,11 @@
             },
             y: {
               scale: 'ordinal'
+            },
+            groups: {
+              scale: 'ordinal',
+              dimension: 'y',
+              roundBands: 0.1
             }
           }
         }
@@ -3140,18 +3155,25 @@
       return (val > 0) ? 'positive' : 'negative';
     };
 
-    var useDiscretePosition = function(dimension, d, i) {
-      var axis = this[dimension];
-      var size = axis.rangeBand() / this.groupsOf;
-      var pos = axis(d[axis.$key]) + size * i;
-      return pos;
+    var useDiscretePosition = function(d) {
+      return this.groups(d[this.groups.$key]);
     };
 
-    var useDiscreteSize = function(dimension) {
+    var useDiscreteGroupPosition = function(d) {
+      var dimension = this.groups.$dimension;
       var axis = this[dimension];
-      var size = axis.rangeBand() / this.groupsOf;
-      var gutter = size * 0.1;
-      return size - gutter;
+      var pos = axis(d.values[0][axis.$key]);
+      var translate;
+      if (dimension === 'x') {
+        translate = [pos, 0];
+      } else if (dimension === 'y') {
+        translate = [0, pos];
+      }
+      return 'translate(' + translate + ')';
+    };
+
+    var useDiscreteSize = function() {
+      return this.groups.rangeBand();
     };
 
     var useContinuousSize = function(dimension, d) {
@@ -3192,15 +3214,19 @@
 
         width: function(d) {
           if (d4.isOrdinalScale(this.x)) {
-            return useDiscreteSize.bind(this)('x');
+            return useDiscreteSize.bind(this)();
           } else {
             return useContinuousSize.bind(this)('x', d);
           }
         },
 
+        groupPositions: function(d, i) {
+          return useDiscreteGroupPosition.bind(this)(d, i);
+        },
+
         x: function(d, i) {
           if (d4.isOrdinalScale(this.x)) {
-            return useDiscretePosition.bind(this)('x', d, i);
+            return useDiscretePosition.bind(this)(d);
           } else {
             return useContinuousPosition.bind(this)('x', d, i);
           }
@@ -3208,11 +3234,11 @@
 
         y: function(d, i) {
           if (d4.isOrdinalScale(this.y)) {
-            return useDiscretePosition.bind(this)('y', d, i);
+            return useDiscretePosition.bind(this)(d);
           } else {
             return useContinuousPosition.bind(this)('y', d, i);
           }
-        }
+        },
       },
       render: function(scope, data, selection) {
         if (data.length > 0) {
@@ -3226,8 +3252,9 @@
 
         columnGroups.enter().append('g');
         columnGroups.attr('class', function(d, i) {
-          return 'series' + i + ' ' + this.x.$key;
-        }.bind(this));
+            return 'series' + i + ' ' + this.x.$key;
+          }.bind(this))
+          .attr('transform', d4.functor(scope.accessors.groupPositions).bind(this));
 
         var rect = columnGroups.selectAll('rect')
           .data(function(d) {
@@ -5093,17 +5120,25 @@
         return i[key];
       }.bind(this));
     }.bind(this));
-    return d3.merge(values);
+    return d3.set(d3.merge(values)).values();
   };
 
   var rangeFor = function(chart, dimension) {
-    var padding = chart.padding
-      // This may not be a very robust approach.
+    var padding = chart.padding;
+    // This may not be a very robust approach.
     switch (dimension) {
       case 'x':
         return [padding.left, chart.width - padding.right];
       case 'y':
         return [chart.height - padding.bottom, padding.top];
+      case 'groups':
+        var groupDimension = chart.axes.groups.$dimension;
+        if (groupDimension === 'x') {
+          return [0, chart.axes.x.rangeBand()];
+        } else {
+          return [chart.axes.y.rangeBand(), 0];
+        }
+        break;
       default:
         return [];
     }
@@ -5171,7 +5206,19 @@
    */
   d4.builder('ordinalScaleForNestedData', function(chart, data, dimension) {
     var parsedData = extractValues(data, chart[dimension].$key);
-    var bands = chart[dimension + 'RoundBands'] = chart[dimension + 'RoundBands'] || 0.3;
+
+    // Apply the padding to a `rangeRoundBands` d3 scale. Check for a custom
+    // or existing padding set by the scale, otherwise provide a default.
+    var bands;
+    if (chart[dimension + 'RoundBands']) {
+      bands = chart[dimension + 'RoundBands'];
+    } else if (chart[dimension].$roundBands) {
+      bands = chart[dimension].$roundBands;
+    } else {
+      bands = 0.3;
+    }
+    chart[dimension + 'RoundBands'] = bands;
+
     var axis = chart[dimension];
     if (!axis.domain.$dirty) {
       axis.domain(parsedData);
@@ -5182,4 +5229,5 @@
     }
     return axis;
   });
+
 }).call(this);
