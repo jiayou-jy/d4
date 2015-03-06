@@ -85,6 +85,10 @@
           } else {
             return useContinuousPosition.bind(this)('y', d);
           }
+        },
+
+        dy: function() {
+          return '0.35em';
         }
       },
 
@@ -112,6 +116,7 @@
           .text(d4.functor(scope.accessors.text).bind(this))
           .attr('text-anchor', d4.functor(scope.accessors.textAnchor).bind(this))
           .attr('class', d4.functor(scope.accessors.classes).bind(this))
+          .attr('dy', d4.functor(scope.accessors.dy).bind(this))
           .attr('y', d4.functor(scope.accessors.y).bind(this))
           .attr('x', d4.functor(scope.accessors.x).bind(this));
 
