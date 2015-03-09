@@ -47,7 +47,6 @@
           });
 
         lines.enter().append('path');
-
         lines.attr('d', function(d) {
           return line(d.values);
         });

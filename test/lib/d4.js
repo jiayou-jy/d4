@@ -1,6 +1,6 @@
 /*! d4 - v0.8.17
  *  License: MIT Expat
- *  Date: 2015-03-02
+ *  Date: 2015-03-06
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -282,6 +282,9 @@
       link: function(chart, data) {
         d4.builders[chart.x.$scale + 'ScaleForNestedData'](chart, data, 'x');
         d4.builders[chart.y.$scale + 'ScaleForNestedData'](chart, data, 'y');
+        if (chart.groups) {
+          d4.builders[chart.groups.$scale + 'ScaleForNestedData'](chart, data, 'groups');
+        }
       }
     });
     var chartAccessors = d4.merge({}, config.accessors);
@@ -1641,11 +1644,11 @@
     var columnLabelOverrides = function() {
       return {
         accessors: {
-          x: function(d, i) {
-            var width = this.x.rangeBand() / this.groupsOf;
-            var xPos = this.x(d[this.x.$key]) + width * i;
-            var gutter = width * 0.1;
-            return xPos + width / 2 - gutter;
+          x: function(d) {
+            var groupX = this.x(d[this.x.$key]);
+            var rectX = this.groups(d[this.groups.$key]);
+            var rectWidthOffset = this.groups.rangeBand() / 2;
+            return groupX + rectX + rectWidthOffset;
           }
         }
       };
@@ -1655,7 +1658,14 @@
         config: {
           accessors: {
             groupsOf: 1
-          }
+          },
+          axes: {
+            groups: {
+              scale: 'ordinal',
+              dimension: 'x',
+              roundBands: 0.1
+            }
+          },
         }
       })
       .mixin([{
@@ -1734,11 +1744,11 @@
     var rowLabelOverrides = function() {
       return {
         accessors: {
-          y: function(d, i) {
-            var height = this.y.rangeBand() / this.groupsOf;
-            var yPos = this.y(d[this.y.$key]) + height * i;
-            var gutter = height * 0.1;
-            return yPos + height / 4 + gutter;
+          y: function(d) {
+            var groupY = this.y(d[this.y.$key]);
+            var rectY = this.groups(d[this.groups.$key]);
+            var rectHeightOffset = this.groups.rangeBand() / 3;
+            return groupY + rectY + rectHeightOffset;
           }
         }
       };
@@ -1761,6 +1771,11 @@
             },
             y: {
               scale: 'ordinal'
+            },
+            groups: {
+              scale: 'ordinal',
+              dimension: 'y',
+              roundBands: 0.1
             }
           }
         }
@@ -2796,12 +2811,12 @@
           .outerRadius(r - aw);
 
         var group = d4.appendOnce(selection, 'g.' + name);
-        var arcGroups = group.selectAll('g')
+        var arcGroups = group.selectAll('g.' + name + '-group')
           .data(data);
 
-        arcGroups.enter()
-          .append('g')
-          .attr('class', name)
+        arcGroups.enter().append('g');
+
+        arcGroups.attr('class', name + '-group')
           .attr('transform', 'translate(' + x + ',' + y + ')');
 
         var arcs = arcGroups.selectAll('path')
@@ -2809,15 +2824,14 @@
             return d.values;
           }, d4.functor(scope.accessors.key).bind(this));
 
+        arcs.enter().append('path');
         // update
         arcs.transition()
           .duration(d4.functor(scope.accessors.duration).bind(this)())
           .attrTween('d', arcTween);
 
         // create new elements as needed
-        arcs.enter()
-          .append('path')
-          .attr('class', d4.functor(scope.accessors.classes).bind(this))
+        arcs.attr('class', d4.functor(scope.accessors.classes).bind(this))
           .attr('data-key', d4.functor(scope.accessors.key).bind(this))
           .attr('d', arc)
           .each(function(d) {
@@ -3047,12 +3061,12 @@
         }
       },
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
-        var label = this.container.select('.' + name).selectAll('.' + name)
+        var group = d4.appendOnce(selection, 'g.' + name);
+        var label = group.selectAll('text')
           .data(data, d4.functor(scope.accessors.key).bind(this));
         label.enter().append('text');
         label.exit().remove();
-        label.attr('class', 'column-label')
+        label.attr('class', 'column-label ' + name)
           .text(d4.functor(scope.accessors.text).bind(this))
           .attr('text-anchor', anchorText.bind(this))
           .attr('x', d4.functor(scope.accessors.x).bind(this))
@@ -3099,28 +3113,31 @@
         var formattedXAxis = d4.functor(scope.accessors.formatXAxis).bind(this)(xAxis);
         var formattedYAxis = d4.functor(scope.accessors.formatYAxis).bind(this)(yAxis);
 
-        selection.append('g').attr('class', 'grid border ' + name)
+        var grid = d4.appendOnce(selection, 'g.grid.border.' + name);
+        var gridBg = d4.appendOnce(grid, 'rect');
+        var gridX = d4.appendOnce(grid, 'g.x.grid.' + name);
+        var gridY = d4.appendOnce(grid, 'g.y.grid.' + name);
+
+        gridBg
           .attr('transform', 'translate(0,0)')
-          .append('rect')
           .attr('x', 0)
           .attr('y', 0)
           .attr('width', this.width)
           .attr('height', this.height);
 
-        selection.append('g')
-          .attr('class', 'x grid ' + name)
+        gridX
           .attr('transform', 'translate(0,' + this.height + ')')
           .call(formattedXAxis
             .tickSize(-this.height, 0, 0)
             .tickFormat(''));
 
-        selection.append('g')
-          .attr('class', 'y grid ' + name)
+        gridY
           .attr('transform', 'translate(0,0)')
           .call(formattedYAxis
             .tickSize(-this.width, 0, 0)
             .tickFormat(''));
-        return selection;
+
+        return grid;
       }
     };
   });
@@ -3138,18 +3155,25 @@
       return (val > 0) ? 'positive' : 'negative';
     };
 
-    var useDiscretePosition = function(dimension, d, i) {
-      var axis = this[dimension];
-      var size = axis.rangeBand() / this.groupsOf;
-      var pos = axis(d[axis.$key]) + size * i;
-      return pos;
+    var useDiscretePosition = function(d) {
+      return this.groups(d[this.groups.$key]);
     };
 
-    var useDiscreteSize = function(dimension) {
+    var useDiscreteGroupPosition = function(d) {
+      var dimension = this.groups.$dimension;
       var axis = this[dimension];
-      var size = axis.rangeBand() / this.groupsOf;
-      var gutter = size * 0.1;
-      return size - gutter;
+      var pos = axis(d.values[0][axis.$key]);
+      var translate;
+      if (dimension === 'x') {
+        translate = [pos, 0];
+      } else if (dimension === 'y') {
+        translate = [0, pos];
+      }
+      return 'translate(' + translate + ')';
+    };
+
+    var useDiscreteSize = function() {
+      return this.groups.rangeBand();
     };
 
     var useContinuousSize = function(dimension, d) {
@@ -3190,15 +3214,19 @@
 
         width: function(d) {
           if (d4.isOrdinalScale(this.x)) {
-            return useDiscreteSize.bind(this)('x');
+            return useDiscreteSize.bind(this)();
           } else {
             return useContinuousSize.bind(this)('x', d);
           }
         },
 
+        groupPositions: function(d, i) {
+          return useDiscreteGroupPosition.bind(this)(d, i);
+        },
+
         x: function(d, i) {
           if (d4.isOrdinalScale(this.x)) {
-            return useDiscretePosition.bind(this)('x', d, i);
+            return useDiscretePosition.bind(this)(d);
           } else {
             return useContinuousPosition.bind(this)('x', d, i);
           }
@@ -3206,11 +3234,11 @@
 
         y: function(d, i) {
           if (d4.isOrdinalScale(this.y)) {
-            return useDiscretePosition.bind(this)('y', d, i);
+            return useDiscretePosition.bind(this)(d);
           } else {
             return useContinuousPosition.bind(this)('y', d, i);
           }
-        }
+        },
       },
       render: function(scope, data, selection) {
         if (data.length > 0) {
@@ -3224,8 +3252,9 @@
 
         columnGroups.enter().append('g');
         columnGroups.attr('class', function(d, i) {
-          return 'series' + i + ' ' + this.x.$key;
-        }.bind(this));
+            return 'series' + i + ' ' + this.x.$key;
+          }.bind(this))
+          .attr('transform', d4.functor(scope.accessors.groupPositions).bind(this));
 
         var rect = columnGroups.selectAll('rect')
           .data(function(d) {
@@ -3395,11 +3424,10 @@
       },
 
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
-        var label = this.container.select('.' + name).selectAll('.' + name).data(data);
+        var group = d4.appendOnce(selection, 'g.' + name);
+        var label = group.selectAll('.seriesLabel').data(data);
         label.enter().append('text');
-        label.exit().remove();
-        label.attr('class', 'line-series-label')
+        label
           .text(d4.functor(scope.accessors.text).bind(this))
           .attr('x', d4.functor(scope.accessors.x).bind(this))
           .attr('y', d4.functor(scope.accessors.y).bind(this))
@@ -3409,6 +3437,7 @@
           }.bind(this));
         displayXValue.bind(this)(scope, data, selection);
 
+        label.exit().remove();
         return label;
       }
     };
@@ -3464,7 +3493,6 @@
           });
 
         lines.enter().append('path');
-
         lines.attr('d', function(d) {
           return line(d.values);
         });
@@ -3509,8 +3537,10 @@
         }
       },
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
-        var referenceLine = d4.appendOnce(this.container.select('.' + name), 'line')
+        var group = d4.appendOnce(selection, 'g.' + name);
+        var referenceLine = d4.appendOnce(group, 'line');
+
+        group.select('line')
           .attr('class', d4.functor(scope.accessors.classes).bind(this))
           .attr('x1', d4.functor(scope.accessors.x1).bind(this))
           .attr('x2', d4.functor(scope.accessors.x2).bind(this))
@@ -3581,21 +3611,21 @@
       },
 
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
-        var group = this.container.select('.' + name).selectAll('g')
-          .data(data)
-          .enter().append('g')
+        var group = d4.appendOnce(selection, 'g.' + name);
+        var connectorGroups = group.selectAll('g')
+          .data(data);
+
+        connectorGroups.enter().append('g')
           .attr('class', function(d, i) {
             return 'series' + i + ' ' + this.y.$key;
           }.bind(this));
 
-        var lines = group.selectAll('lines')
+        var lines = connectorGroups.selectAll('line')
           .data(function(d) {
             return d.values;
           }.bind(this));
 
         lines.enter().append('line');
-        lines.exit().remove();
         lines
           .attr('class', d4.functor(scope.accessors.classes).bind(this))
           .attr('stroke-dasharray', '5, 5')
@@ -3625,6 +3655,8 @@
           });
         }.bind(this));
 
+        connectorGroups.exit().remove();
+        lines.exit().remove();
         return lines;
       }
     };
@@ -3718,31 +3750,40 @@
           } else {
             return useContinuousPosition.bind(this)('y', d);
           }
+        },
+
+        dy: function() {
+          return '0.35em';
         }
       },
 
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
-        var group = this.container.select('.' + name).selectAll('g')
+        var group = d4.appendOnce(selection, 'g.' + name);
+
+        var labelGroups = group.selectAll('g')
           .data(data, d4.functor(scope.accessors.key).bind(this));
-        group.enter().append('g')
+
+        labelGroups.enter().append('g')
           .attr('class', function(d, i) {
             return 'series' + i + ' ' + this.x.$key;
           }.bind(this));
-        group.exit().remove();
 
-        var text = group.selectAll('text')
+        labelGroups.exit().remove();
+
+        var text = labelGroups.selectAll('text')
           .data(function(d) {
             return d.values;
           }.bind(this));
-        text.enter().append('text')
+
+        text.enter().append('text');
+
+        text
           .text(d4.functor(scope.accessors.text).bind(this))
           .attr('text-anchor', d4.functor(scope.accessors.textAnchor).bind(this))
           .attr('class', d4.functor(scope.accessors.classes).bind(this))
+          .attr('dy', d4.functor(scope.accessors.dy).bind(this))
           .attr('y', d4.functor(scope.accessors.y).bind(this))
           .attr('x', d4.functor(scope.accessors.x).bind(this));
-
-        text.exit().remove();
 
         if (d4.functor(scope.accessors.stagger).bind(this)()) {
 
@@ -3765,6 +3806,8 @@
             });
           });
         });
+        labelGroups.exit().remove();
+        text.exit().remove();
         return text;
       }
     };
@@ -3850,6 +3893,7 @@
 
         shapeGroups.exit().remove();
         shape.exit().remove();
+        shapeGroups.exit().remove();
         return shape;
       }
     };
@@ -4193,8 +4237,8 @@
       },
 
       render: function(scope, data, selection) {
-        selection.append('g').attr('class', name);
-        var lines = this.container.select('.' + name).selectAll('.' + name).data(data);
+        var group = d4.appendOnce(selection, 'g.' + name);
+        var lines = group.selectAll('line').data(data);
         lines.enter().append('line');
         lines.exit().remove();
         lines
@@ -5081,17 +5125,25 @@
         return i[key];
       }.bind(this));
     }.bind(this));
-    return d3.merge(values);
+    return d3.set(d3.merge(values)).values();
   };
 
   var rangeFor = function(chart, dimension) {
-    var padding = chart.padding
-      // This may not be a very robust approach.
+    var padding = chart.padding;
+    // This may not be a very robust approach.
     switch (dimension) {
       case 'x':
         return [padding.left, chart.width - padding.right];
       case 'y':
         return [chart.height - padding.bottom, padding.top];
+      case 'groups':
+        var groupDimension = chart.axes.groups.$dimension;
+        if (groupDimension === 'x') {
+          return [0, chart.axes.x.rangeBand()];
+        } else {
+          return [chart.axes.y.rangeBand(), 0];
+        }
+        break;
       default:
         return [];
     }
@@ -5159,7 +5211,19 @@
    */
   d4.builder('ordinalScaleForNestedData', function(chart, data, dimension) {
     var parsedData = extractValues(data, chart[dimension].$key);
-    var bands = chart[dimension + 'RoundBands'] = chart[dimension + 'RoundBands'] || 0.3;
+
+    // Apply the padding to a `rangeRoundBands` d3 scale. Check for a custom
+    // or existing padding set by the scale, otherwise provide a default.
+    var bands;
+    if (chart[dimension + 'RoundBands']) {
+      bands = chart[dimension + 'RoundBands'];
+    } else if (chart[dimension].$roundBands) {
+      bands = chart[dimension].$roundBands;
+    } else {
+      bands = 0.3;
+    }
+    chart[dimension + 'RoundBands'] = bands;
+
     var axis = chart[dimension];
     if (!axis.domain.$dirty) {
       axis.domain(parsedData);
@@ -5170,4 +5234,5 @@
     }
     return axis;
   });
+
 }).call(this);
