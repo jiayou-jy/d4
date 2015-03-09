@@ -44,14 +44,8 @@
             x: {
               scale: 'linear'
             },
-            valueKey: 'x',
-            axes: {
-              x: {
-                scale: 'linear'
-              },
-              y: {
-                scale: 'ordinal'
-              }
+            y: {
+              scale: 'ordinal'
             }
           }
         }
