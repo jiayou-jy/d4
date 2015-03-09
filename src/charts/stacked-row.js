@@ -60,7 +60,8 @@
    *
    * @name stackedRow
    */
-  d4.chart('stackedRow', function stackedRow() {
+  d4.chart('stackedRow', function stackedRow(config) {
+    var _config = config || {};
     var columnLabelsOverrides = function() {
       var extractValues = function(data) {
         var arr = [];
@@ -119,7 +120,7 @@
       };
     };
 
-    return d4.baseChart({
+    return d4.baseChart(d4.extend({
         config: {
           margin: {
             top: 20,
@@ -131,12 +132,17 @@
             x: {
               scale: 'linear'
             },
-            y: {
-              scale: 'ordinal'
+            axes: {
+              x: {
+                scale: 'linear'
+              },
+              y: {
+                scale: 'ordinal'
+              }
             }
           }
         }
-      })
+      }, _config))
       .mixin([{
         'name': 'bars',
         'feature': d4.features.rectSeries

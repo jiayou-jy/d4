@@ -1,6 +1,6 @@
-/*! d4 - v0.8.17
+/*! d4 - v0.9.2
  *  License: MIT Expat
- *  Date: 2015-03-06
+ *  Date: 2015-03-09
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -1471,8 +1471,9 @@
    *
    * @name column
    */
-  d4.chart('column', function column() {
-    return d4.baseChart()
+  d4.chart('column', function column(config) {
+    var _config = config || {};
+    return d4.baseChart(_config)
       .mixin([{
         'name': 'bars',
         'feature': d4.features.rectSeries
@@ -1561,8 +1562,9 @@
    *
    * @name donut
    */
-  d4.chart('donut', function donut() {
-    return d4.baseChart({
+  d4.chart('donut', function donut(config) {
+    var _config = config || {};
+    return d4.baseChart(d4.extend({
         config: {
           accessors: {
             radius: function() {
@@ -1573,15 +1575,14 @@
             }
           }
         }
-      })
-      .mixin(
-        [{
-          'name': 'arcs',
-          'feature': d4.features.arcSeries
-        }, {
-          'name': 'arcLabels',
-          'feature': d4.features.arcLabels
-        }]);
+      }, _config))
+      .mixin([{
+        'name': 'arcs',
+        'feature': d4.features.arcSeries
+      }, {
+        'name': 'arcLabels',
+        'feature': d4.features.arcLabels
+      }]);
   });
 }).call(this);
 
@@ -1640,7 +1641,8 @@
    *
    * @name groupedColumn
    */
-  d4.chart('groupedColumn', function groupedColumn() {
+  d4.chart('groupedColumn', function groupedColumn(config) {
+    var _config = config || {};
     var columnLabelOverrides = function() {
       return {
         accessors: {
@@ -1654,11 +1656,8 @@
       };
     };
 
-    return d4.baseChart({
+    return d4.baseChart(d4.extend({
         config: {
-          accessors: {
-            groupsOf: 1
-          },
           axes: {
             groups: {
               scale: 'ordinal',
@@ -1666,8 +1665,11 @@
               roundBands: 0.1
             }
           },
+          accessors: {
+            groupsOf: 1
+          }
         }
-      })
+      }, _config))
       .mixin([{
         'name': 'bars',
         'feature': d4.features.groupedColumnSeries
@@ -1740,7 +1742,8 @@
    *
    * @name groupedRow
    */
-  d4.chart('groupedRow', function groupedRow() {
+  d4.chart('groupedRow', function groupedRow(config) {
+    var _config = config || {};
     var rowLabelOverrides = function() {
       return {
         accessors: {
@@ -1754,7 +1757,7 @@
       };
     };
 
-    return d4.baseChart({
+    return d4.baseChart(d4.extend({
         config: {
           accessors: {
             groupsOf: 1
@@ -1769,17 +1772,28 @@
             x: {
               scale: 'linear'
             },
-            y: {
-              scale: 'ordinal'
+            margin: {
+              top: 20,
+              right: 40,
+              bottom: 20,
+              left: 40
             },
-            groups: {
-              scale: 'ordinal',
-              dimension: 'y',
-              roundBands: 0.1
+            axes: {
+              x: {
+                scale: 'linear'
+              },
+              y: {
+                scale: 'ordinal'
+              },
+              groups: {
+                scale: 'ordinal',
+                dimension: 'y',
+                roundBands: 0.1
+              }
             }
           }
         }
-      })
+      }, _config))
       .mixin([{
         'name': 'bars',
         'feature': d4.features.groupedColumnSeries
@@ -1855,8 +1869,9 @@
    *
    * @name line
    */
-  d4.chart('line', function line() {
-    return d4.baseChart().mixin([{
+  d4.chart('line', function line(config) {
+    var _config = config || {};
+    return d4.baseChart(_config).mixin([{
       'name': 'lineSeries',
       'feature': d4.features.lineSeries
     }, {
@@ -1903,8 +1918,9 @@
    *
    * @name row
    */
-  d4.chart('row', function row() {
-    return d4.baseChart({
+  d4.chart('row', function row(config) {
+    var _config = config || {};
+    return d4.baseChart(d4.extend({
         config: {
           margin: {
             top: 20,
@@ -1917,12 +1933,18 @@
             x: {
               scale: 'linear'
             },
-            y: {
-              scale: 'ordinal'
+            valueKey: 'x',
+            axes: {
+              x: {
+                scale: 'linear'
+              },
+              y: {
+                scale: 'ordinal'
+              }
             }
           }
         }
-      })
+      }, _config))
       .mixin([{
         'name': 'bars',
         'feature': d4.features.rectSeries
@@ -2064,8 +2086,9 @@
    *
    * @name scatterPlot
    */
-  d4.chart('scatterPlot', function scatterPlot() {
-    return d4.baseChart({
+  d4.chart('scatterPlot', function scatterPlot(config) {
+    var _config = config || {};
+    return d4.baseChart(d4.extend({
         builder: scatterPlotBuilder,
         config: {
           axes: {
@@ -2077,7 +2100,7 @@
             }
           }
         }
-      })
+      }, _config))
       .mixin([{
         'name': 'circles',
         'feature': d4.features.circleSeries,
@@ -2158,7 +2181,8 @@
    *
    * @name stackedColumn
    */
-  d4.chart('stackedColumn', function stackedColumn() {
+  d4.chart('stackedColumn', function stackedColumn(config) {
+    var _config = config || {};
     var columnLabelsOverrides = function() {
       var extractValues = function(data) {
         var arr = [];
@@ -2216,7 +2240,7 @@
       };
     };
 
-    return d4.baseChart()
+    return d4.baseChart(_config)
       .mixin([{
         'name': 'bars',
         'feature': d4.features.rectSeries
@@ -2302,7 +2326,8 @@
    *
    * @name stackedRow
    */
-  d4.chart('stackedRow', function stackedRow() {
+  d4.chart('stackedRow', function stackedRow(config) {
+    var _config = config || {};
     var columnLabelsOverrides = function() {
       var extractValues = function(data) {
         var arr = [];
@@ -2361,7 +2386,7 @@
       };
     };
 
-    return d4.baseChart({
+    return d4.baseChart(d4.extend({
         config: {
           margin: {
             top: 20,
@@ -2373,12 +2398,17 @@
             x: {
               scale: 'linear'
             },
-            y: {
-              scale: 'ordinal'
+            axes: {
+              x: {
+                scale: 'linear'
+              },
+              y: {
+                scale: 'ordinal'
+              }
             }
           }
         }
-      })
+      }, _config))
       .mixin([{
         'name': 'bars',
         'feature': d4.features.rectSeries
@@ -2601,10 +2631,11 @@
    *
    * @name waterfall
    */
-  d4.chart('waterfall', function waterfallChart() {
-    return d4.baseChart({
+  d4.chart('waterfall', function waterfallChart(config) {
+    var _config = config || {};
+    return d4.baseChart(d4.extend({
         builder: waterfallChartBuilder
-      })
+      }, _config))
       .mixin([{
         'name': 'bars',
         'feature': d4.features.rectSeries,
@@ -2824,7 +2855,11 @@
             return d.values;
           }, d4.functor(scope.accessors.key).bind(this));
 
-        arcs.enter().append('path');
+        arcs.enter().append('path')
+          .each(function(d) {
+            this._current = d;
+          });
+
         // update
         arcs.transition()
           .duration(d4.functor(scope.accessors.duration).bind(this)())
@@ -2833,10 +2868,7 @@
         // create new elements as needed
         arcs.attr('class', d4.functor(scope.accessors.classes).bind(this))
           .attr('data-key', d4.functor(scope.accessors.key).bind(this))
-          .attr('d', arc)
-          .each(function(d) {
-            this._current = d;
-          });
+          .attr('d', arc);
 
         //remove old elements as needed
         arcs.exit().remove();
@@ -4343,9 +4375,9 @@
       return rect;
     };
 
-    var positionText = function(obj, aligned, klass) {
+    var positionText = function(obj, aligned, klass, scaleId) {
       if (obj.text) {
-        var axis = this.container.selectAll('.x.axis');
+        var axis = this.container.selectAll('.' + scaleId + '.axis');
         var axisBB = axis.node().getBBox();
         var textHeight = obj.height * 0.8;
         var text = axis.append('text')
@@ -4380,18 +4412,23 @@
         subtitle: undefined,
 
         title: undefined,
+
+        scaleId: function() {
+          return 'x';
+        }
       },
       proxies: [{
         target: axis
       }],
 
       render: function(scope) {
-        scope.scale(this.x);
+        var scaleId = d4.functor(scope.accessors.scaleId).bind(this)();
+        scope.scale(this[scaleId]);
         var title = textRect(d4.functor(scope.accessors.title).bind(this)(), 'title');
         var subtitle = textRect(d4.functor(scope.accessors.subtitle).bind(this)(), 'subtitle');
         var aligned = d4.functor(scope.accessors.align).bind(this)();
-        var group = d4.appendOnce(this.container.select('g.margins'), 'g.x.axis.' + name)
-          .attr('data-scale', this.x.$scale)
+        var group = d4.appendOnce(this.container.select('g.margins'), 'g.' + scaleId + '.axis.' + name)
+          .attr('data-scale', this[scaleId].$scale)
           .call(axis);
         alignAxis.bind(this)(aligned, group);
         if (d4.functor(scope.accessors.stagger).bind(this)()) {
@@ -4400,11 +4437,11 @@
           group.selectAll('.tick text').call(d4.helpers.staggerTextVertically, 1);
         }
         if (aligned === 'top') {
-          positionText.bind(this)(subtitle, aligned, 'subtitle');
-          positionText.bind(this)(title, aligned, 'title');
+          positionText.bind(this)(subtitle, aligned, 'subtitle', scaleId);
+          positionText.bind(this)(title, aligned, 'title', scaleId);
         } else {
-          positionText.bind(this)(title, aligned, 'title');
-          positionText.bind(this)(subtitle, aligned, 'subtitle');
+          positionText.bind(this)(title, aligned, 'title', scaleId);
+          positionText.bind(this)(subtitle, aligned, 'subtitle', scaleId);
         }
         return group;
       }
@@ -4471,9 +4508,9 @@
       return rect;
     };
 
-    var positionText = function(obj, aligned, klass) {
+    var positionText = function(obj, aligned, klass, scaleId) {
       if (obj.text) {
-        var axis = this.container.selectAll('.y.axis');
+        var axis = this.container.selectAll('.' + scaleId + '.axis');
         var axisBB = axis.node().getBBox();
         var textHeight = obj.height * 0.8;
         var text = axis.append('text')
@@ -4509,20 +4546,25 @@
 
         title: undefined,
 
-        wrap: true
+        wrap: true,
+
+        scaleId: function() {
+          return 'y';
+        }
       },
       proxies: [{
         target: axis
       }],
       render: function(scope) {
-        scope.scale(this.y);
+        var scaleId = d4.functor(scope.accessors.scaleId).bind(this)();
+        scope.scale(this[scaleId]);
         var title = textRect(d4.functor(scope.accessors.title).bind(this)(), 'title');
         var subtitle = textRect(d4.functor(scope.accessors.subtitle).bind(this)(), 'subtitle');
         var aligned = d4.functor(scope.accessors.align).bind(this)();
         var wrap = d4.functor(scope.accessors.wrap).bind(this)();
 
-        var group = d4.appendOnce(this.container.select('g.margins'), 'g.y.axis.' + name)
-          .attr('data-scale', this.y.$scale)
+        var group = d4.appendOnce(this.container.select('g.margins'), 'g.' + scaleId + '.axis.' + name)
+          .attr('data-scale', this[scaleId].$scale)
           .call(axis);
 
         if (wrap) {
@@ -4534,14 +4576,14 @@
         if (d4.functor(scope.accessors.stagger).bind(this)()) {
 
           // FIXME: This should be moved into a helper injected using DI.
-          this.container.selectAll('.y.axis .tick text').call(d4.helpers.staggerTextHorizontally, -1);
+          this.container.selectAll('.' + scaleId + '.axis .tick text').call(d4.helpers.staggerTextHorizontally, -1);
         }
         if (aligned === 'left') {
-          positionText.bind(this)(title, aligned, 'title');
-          positionText.bind(this)(subtitle, aligned, 'subtitle');
+          positionText.bind(this)(title, aligned, 'title', scaleId);
+          positionText.bind(this)(subtitle, aligned, 'subtitle', scaleId);
         } else {
-          positionText.bind(this)(subtitle, aligned, 'subtitle');
-          positionText.bind(this)(title, aligned, 'title');
+          positionText.bind(this)(subtitle, aligned, 'subtitle', scaleId);
+          positionText.bind(this)(title, aligned, 'title', scaleId);
         }
         return group;
       }

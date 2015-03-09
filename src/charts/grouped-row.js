@@ -53,7 +53,8 @@
    *
    * @name groupedRow
    */
-  d4.chart('groupedRow', function groupedRow() {
+  d4.chart('groupedRow', function groupedRow(config) {
+    var _config = config || {};
     var rowLabelOverrides = function() {
       return {
         accessors: {
@@ -67,7 +68,7 @@
       };
     };
 
-    return d4.baseChart({
+    return d4.baseChart(d4.extend({
         config: {
           accessors: {
             groupsOf: 1
@@ -82,17 +83,28 @@
             x: {
               scale: 'linear'
             },
-            y: {
-              scale: 'ordinal'
+            margin: {
+              top: 20,
+              right: 40,
+              bottom: 20,
+              left: 40
             },
-            groups: {
-              scale: 'ordinal',
-              dimension: 'y',
-              roundBands: 0.1
+            axes: {
+              x: {
+                scale: 'linear'
+              },
+              y: {
+                scale: 'ordinal'
+              },
+              groups: {
+                scale: 'ordinal',
+                dimension: 'y',
+                roundBands: 0.1
+              }
             }
           }
         }
-      })
+      }, _config))
       .mixin([{
         'name': 'bars',
         'feature': d4.features.groupedColumnSeries
