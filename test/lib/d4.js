@@ -1,6 +1,6 @@
 /*! d4 - v0.9.2
  *  License: MIT Expat
- *  Date: 2015-03-10
+ *  Date: 2015-03-11
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -2850,7 +2850,9 @@
           }, d4.functor(scope.accessors.key).bind(this));
 
         arcs.enter().append('path')
-          .each(function(d) { this._current = d; });
+          .each(function(d) {
+            this._current = d;
+          });
 
         // update
         arcs.transition()
