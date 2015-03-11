@@ -1,6 +1,6 @@
 /*! d4 - v0.9.2
  *  License: MIT Expat
- *  Date: 2015-03-09
+ *  Date: 2015-03-10
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -2850,9 +2850,7 @@
           }, d4.functor(scope.accessors.key).bind(this));
 
         arcs.enter().append('path')
-          .each(function(d) {
-            this._current = d;
-          });
+          .each(function(d) { this._current = d; });
 
         // update
         arcs.transition()
@@ -4415,13 +4413,13 @@
         target: axis
       }],
 
-      render: function(scope) {
+      render: function(scope, data, selection) {
         var scaleId = d4.functor(scope.accessors.scaleId).bind(this)();
         scope.scale(this[scaleId]);
         var title = textRect(d4.functor(scope.accessors.title).bind(this)(), 'title');
         var subtitle = textRect(d4.functor(scope.accessors.subtitle).bind(this)(), 'subtitle');
         var aligned = d4.functor(scope.accessors.align).bind(this)();
-        var group = d4.appendOnce(this.container.select('g.margins'), 'g.' + scaleId + '.axis.' + name)
+        var group = d4.appendOnce(selection, 'g.' + scaleId + '.axis.' + name)
           .attr('data-scale', this[scaleId].$scale)
           .call(axis);
         alignAxis.bind(this)(aligned, group);
@@ -4549,7 +4547,7 @@
       proxies: [{
         target: axis
       }],
-      render: function(scope) {
+      render: function(scope, data, selection) {
         var scaleId = d4.functor(scope.accessors.scaleId).bind(this)();
         scope.scale(this[scaleId]);
         var title = textRect(d4.functor(scope.accessors.title).bind(this)(), 'title');
@@ -4557,7 +4555,7 @@
         var aligned = d4.functor(scope.accessors.align).bind(this)();
         var wrap = d4.functor(scope.accessors.wrap).bind(this)();
 
-        var group = d4.appendOnce(this.container.select('g.margins'), 'g.' + scaleId + '.axis.' + name)
+        var group = d4.appendOnce(selection, 'g.' + scaleId + '.axis.' + name)
           .attr('data-scale', this[scaleId].$scale)
           .call(axis);
 
