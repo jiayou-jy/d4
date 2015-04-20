@@ -1,6 +1,6 @@
 /*! d4 - v0.9.2
  *  License: MIT Expat
- *  Date: 2015-03-19
+ *  Date: 2015-04-20
  *  Copyright: Mark Daggett, D4 Team
  */
 /*!
@@ -201,7 +201,7 @@
    *       chart.builder(function() {
    *           return {
    *               link: function(chart, data) {
-   *                   // false;
+   *                   console.log(chart.x.domain.$dirty) // false;
    *               }
    *           }
    *       });
@@ -673,7 +673,7 @@
      *      .mixout('yAxis');
      *
      *      // Now test that the feature has been removed.
-     *      
+     *      console.log(chart.features());
      *      // => ["bars", "barLabels", "xAxis"]
      *
      * @return {Array} An array of features.
@@ -828,7 +828,7 @@
      *      .mixout('yAxis');
      *
      *      // Now test that the feature has been removed.
-     *      
+     *      console.log(chart.features());
      *      => ["bars", "barLabels", "xAxis"]
      *
      * @param {String} name - accessor name for chart feature.
@@ -4556,13 +4556,19 @@
       }
     };
 
-    var alignAxis = function(align, axis) {
+    var alignAxis = function(align, group, axis) {
       switch (true) {
         case align.toLowerCase() === 'left':
-          axis.attr('transform', 'translate(' + this.padding.left + ',0)');
+          group.attr('transform', 'translate(' + (this.padding.left + axis.tickSize()) + ',0)');
+          break;
+        case align.toLowerCase() === 'qz-xy-left':
+          group.attr('transform', 'translate(' + this.padding.left + ',0)');
           break;
         case align.toLowerCase() === 'right':
-          axis.attr('transform', 'translate(' + (this.width - this.padding.right) + ', 0)');
+          group.attr('transform', 'translate(' + (this.width - this.padding.right) + ', 0)');
+          break;
+        case align.toLowerCase() === 'qz-xy-right':
+          group.attr('transform', 'translate(' + (this.width - this.padding.right) + ', 0)');
           break;
       }
     };
@@ -4602,7 +4608,7 @@
           group.selectAll('.tick text')
             .call(d4.helpers.wrapText, this.margin[aligned]);
         }
-        alignAxis.bind(this)(aligned, group);
+        alignAxis.bind(this)(aligned, group, axis);
 
         if (d4.functor(scope.accessors.stagger).bind(this)()) {
 
