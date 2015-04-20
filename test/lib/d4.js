@@ -4559,13 +4559,13 @@
     var alignAxis = function(align, group, axis) {
       switch (true) {
         case align.toLowerCase() === 'left':
-          group.attr('transform', 'translate(' + (this.padding.left + axis.tickSize()) + ',0)');
+          group.attr('transform', 'translate(' + (this.padding.left + axis.tickSize() + this.margin.left) + ',0)');
           break;
         case align.toLowerCase() === 'qz-xy-left':
           group.attr('transform', 'translate(' + this.padding.left + ',0)');
           break;
         case align.toLowerCase() === 'right':
-          group.attr('transform', 'translate(' + (this.width - this.padding.right) + ', 0)');
+          group.attr('transform', 'translate(' + (this.width - this.padding.right - this.margin.right) + ', 0)');
           break;
         case align.toLowerCase() === 'qz-xy-right':
           group.attr('transform', 'translate(' + (this.width - this.padding.right) + ', 0)');
