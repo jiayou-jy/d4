@@ -4548,10 +4548,12 @@
           .text(obj.text)
           .attr('class', '' + klass);
 
-        if (aligned.toLowerCase() === 'left') {
-          text.call(d4.helpers.rotateText('rotate(' + 90 + ')translate(0,' + (Math.abs(axisBB.x) + textHeight) + ')'));
+        if (alignment === 'left') {
+          d3.selectAll(".titleleft")
+            .attr("transform", "translate(" + (-this.outerWidth + this.padding.right + this.margin.right + this.margin.left) + "," + ( chartHeight / 2 + textBB.width / 2 ) + ")rotate(270)");
         } else {
-          text.call(d4.helpers.rotateText('rotate(' + 90 + ')translate(0,' + (Math.abs(axisBB.x) - (axisBB.width + textHeight)) + ')'));
+          d3.selectAll(".titleright")
+            .attr("transform", "translate(" + (this.padding.right - this.margin.right) + "," + (chartHeight / 2 - textBB.width / 2 ) + ")rotate(90)");
         }
       }
     };
