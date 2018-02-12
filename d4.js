@@ -4541,12 +4541,17 @@
 
     var positionText = function(obj, aligned, klass, scaleId) {
       if (obj.text) {
-        var axis = this.container.selectAll('.' + scaleId + '.axis');
-        var axisBB = axis.node().getBBox();
-        var textHeight = obj.height * 0.8;
-        var text = axis.append('text')
+        var axis = this.container.selectAll('.' + scaleId + 'Axis');
+        var alignment = aligned.toLowerCase();
+        var text = axis.append('g')
+          .attr('class', '' + klass + ' ' + klass + alignment)
+          .append('text')
           .text(obj.text)
-          .attr('class', '' + klass);
+          .attr('class', '' + klass + 'text');
+        var axisBB = axis.node().getBBox();
+        var textBB = text.node().getBBox();
+        var textAxisSpace = -5;
+        var chartHeight = this.outerHeight + this.padding.top - this.padding.bottom;
 
         if (alignment === 'left') {
           d3.selectAll(".titleleft")
